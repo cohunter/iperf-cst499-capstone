@@ -1,4 +1,4 @@
-1582949776,::ffff:209.141.36.43,0.221,ms,23.8,MBytes,10.0,0,16943
+Time,Addr,Jitter,Jitter_magnitude,transferred,transferred_magnitude,time,lost_packets,total_packets
 1582950682,::ffff:209.141.36.43,0.054,ms,11.9,MBytes,10.0,0,8505
 1582954281,::ffff:209.141.36.43,0.081,ms,11.9,MBytes,10.0,0,8505
 1582957882,::ffff:209.141.36.43,0.070,ms,11.9,MBytes,10.0,0,8505
