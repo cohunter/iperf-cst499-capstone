@@ -10,3 +10,4 @@
 ## Metasrv
 
 * Runs commands and parses output to CSV for data analysis
+* See `ls.go`
