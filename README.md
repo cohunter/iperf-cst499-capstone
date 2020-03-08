@@ -1,15 +1,12 @@
 # iperf-cst499-capstone
 
-## iperf 2 server setup from repository
+## Server Setup
 
-* apt update
-* apt upgrade && apt install iperf
+    multipass launch -n iperf --cloud-init cloud-init.yaml
 
-## iperf 3 server setup from repository
+* Downloads and builds iPerf 2.0.5 & iPerf 3.7 from git
+* Runs multiple instances of iPerf2 and iPerf3 under metasrv
 
-* apt update
-* apt upgrade && apt install iperf3
+## Metasrv
 
-## TODO:
-
-compile from source
+* Runs commands and parses output to CSV for data analysis
