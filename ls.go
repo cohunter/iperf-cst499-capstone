@@ -24,10 +24,10 @@ type command struct {
 var (
 	commands = [...]string{
 		"iperf3 -s -J -I /tmp/iperf3.pid", // iperf 3 handles tcp/udp & multiple clients
-		"iperf -s -u -V",                  // iperf 2 udp, ipv4/6
-		"iperf -s -V",                     // iperf 2 tcp, ipv4/6
-		"iperf -s -V -p 5002",             // iperf 2 tcp alternate port
-		"iperf -s -u -V -p 5002",          // iperf 2 udp alternate port
+		"iperf -s -u -yC -V -e",                  // iperf 2 udp, ipv4/6
+		"iperf -s -yC -V -e",                     // iperf 2 tcp, ipv4/6
+		"iperf -s -yC -V -p 5002",             // iperf 2 tcp alternate port
+		"iperf -s -yC -u -V -p 5002",          // iperf 2 udp alternate port
 	}
 
 	wg sync.WaitGroup
@@ -219,6 +219,83 @@ func jsonHandler(jsonStream io.Reader, srcCmd command) {
 	return
 }
 
+func csvParser(output io.Reader, srcCmd command) {
+	log.Printf("iPerf2 CSV %+v", srcCmd)
+	scanner := csv.NewReader(output)
+	scanner.FieldsPerRecord = -1 // iPerf2 CSV outout has two different lengths on client, also different for tcp, udp
+	go func() {
+		for {
+			record, err := scanner.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Println(err)
+				break
+			}
+			
+			unixtime := strconv.FormatInt(time.Now().Unix(), 10)
+			
+			switch len(record) {
+				case 9: // TCP Result
+				// [Datetime, Host_addr, Host_port, Client_addr, Client_port, Transfer_id, Duration, Transferred, Transfer_rate]
+					log.Println("iPerf 2 TCP Result received from", record[3])
+					fn := "iperf2-tcp-reverse.csv"
+					
+					// Check if host port is the same as given in command line
+					for _, e := range srcCmd.Cmdline {
+						if e == record[2] {
+							fn = "iperf2-tcp.csv"
+						}
+					}
+					f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+					if err != nil {
+						log.Fatalf("Can't open CSV output file for iPerf 2 TCP test: %s", err)
+					}
+					w := csv.NewWriter(f) // unixtime, host_addr, host_port, client_addr, client_port, duration, transfer_amount, bandwidth
+					if err := w.Write([]string{unixtime, record[1], record[2], record[3], record[4], record[6], record[7], record[8]}); err != nil {
+						log.Fatal("Can't write to CSV output for iPerf 2 TCP test.")
+					}
+					w.Flush()
+					if err := w.Error(); err != nil {
+						log.Fatalf("Can't write to CSV output for iPerf 2 TCP test: %s", err)
+					}
+					f.Close()
+
+				case 14: // UDP Result
+				// [Datetime, Host_addr, Host_port, Client_addr, Client_port, Transfer_id, Duration, Transferred, Transfer_rate, Jitter_ms, Lost_packets, Total_packets, Lost_pct, is_reversed]
+					log.Println("iPerf 2 UDP Result received from", record[3])
+					fn := "iperf2-udp.csv"
+					if record[13] == "1" {
+						fn = "iperf2-udp-reverse.csv"
+					}
+					f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+					if err != nil {
+						log.Fatalf("Can't open CSV output file for iPerf 2 UDP test: %s", err)
+					}
+					w := csv.NewWriter(f) // unixtime, host_addr, host_port, client_addr, client_port, duration, transfer_amount, bandwidth, jitter, lost, total
+					if err := w.Write([]string{unixtime, record[1], record[2], record[3], record[4], record[6], record[7], record[8], record[9], record[10], record[11]}); err != nil {
+						log.Fatal("Can't write to CSV output for iPerf 2 UDP test.")
+					}
+					w.Flush()
+					if err := w.Error(); err != nil {
+						log.Fatalf("Can't write to CSV output for iPerf 2 UDP test: %s", err)
+					}
+					f.Close()
+				default:
+					log.Println("%d", len(record))
+			}
+			log.Println(record)
+		}
+		
+		// The child process has exited. Let's try to restart it.
+		srcCmd.Retries += 1
+		log.Print("iPerf 2 has exited")
+		go handleCommand(srcCmd)
+		wg.Done()
+	}()
+}
+
 func checkRegexp(re *regexp.Regexp, outputLine string) (matchmap map[string]string) {
 	matchmap = make(map[string]string)
 	matches := re.FindStringSubmatch(outputLine)
@@ -377,7 +454,7 @@ func handleCommand(thisCmd command) {
 	case "iperf":
 		// Start multiple servers to handle more than one client at a time
 		output, _ := launchServer(thisCmd)
-		textParser(output, thisCmd)
+		csvParser(output, thisCmd)
 
 	default:
 		// Each handler calls wg.Done() eventually
