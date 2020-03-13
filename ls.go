@@ -22,10 +22,11 @@ type command struct {
 }
 
 var (
+	// Must specify port explicitly for iPerf 2 so that reverse tests can be checked
 	commands = [...]string{
 		"iperf3 -s -J -I /tmp/iperf3.pid", // iperf 3 handles tcp/udp & multiple clients
-		"iperf -s -u -yC -V -e",                  // iperf 2 udp, ipv4/6
-		"iperf -s -yC -V -e",                     // iperf 2 tcp, ipv4/6
+		"iperf -s -u -yC -V -p 5001",                  // iperf 2 udp, ipv4/6
+		"iperf -s -yC -V -p 5001",                     // iperf 2 tcp, ipv4/6
 		"iperf -s -yC -V -p 5002",             // iperf 2 tcp alternate port
 		"iperf -s -yC -u -V -p 5002",          // iperf 2 udp alternate port
 	}
@@ -165,20 +166,26 @@ func jsonHandler(jsonStream io.Reader, srcCmd command) {
 					// Do something with TCP result data
 					log.Printf("Received iPerf 3 TCP test results from %s", m.Start.Accepted_connection.Host)
 					unixtime := strconv.FormatInt(time.Now().Unix(), 10)
-					f, err := os.OpenFile("iperf3-tcp.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+					fn := "iperf3-tcp.csv"
+					if m.Start.Test_start.Reverse == 1 {
+						log.Printf("This is a REVERSE iPerf 3 TCP test result.")
+						fn = "iperf3-tcp-reverse.csv"
+					}
+
+					f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 					if err != nil {
 						log.Fatalf("Can't open CSV output file for iPerf 3 TCP test: %s", err)
 					}
 					w := csv.NewWriter(f)
 
-					if m.Start.Test_start.Reverse == 0 {
+					//if m.Start.Test_start.Reverse == 0 {
 						sr := m.End.Sum_received
 						if err := w.Write([]string{unixtime, m.Start.Accepted_connection.Host, fmt.Sprintf("%d", sr.Bytes), fmt.Sprintf("%f", sr.Bits_per_second), fmt.Sprintf("%f", sr.Seconds)}); err != nil {
 							log.Fatal("Can't write to CSV output for iPerf 3 TCP test.")
 						}
-					} else {
-						log.Print("Reverse test result discarded -- not supported by iPerf 2")
-					}
+					//} else {
+					//	log.Print("Reverse test result discarded -- not supported by iPerf 2")
+					//}
 					w.Flush()
 					if err := w.Error(); err != nil {
 						log.Fatalf("Can't write to CSV output for iPerf 3 TCP test: %s", err)
@@ -188,20 +195,25 @@ func jsonHandler(jsonStream io.Reader, srcCmd command) {
 					// Do something with UDP result data
 					log.Printf("Received iPerf 3 UDP test results from %s", m.Start.Accepted_connection.Host)
 					unixtime := strconv.FormatInt(time.Now().Unix(), 10)
-					f, err := os.OpenFile("iperf3-udp.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+					fn := "iperf3-udp.csv"
+					if m.Start.Test_start.Reverse == 1 {
+						log.Printf("This is a REVERSE iPerf 3 UDP test result.")
+						fn = "iperf3-udp-reverse.csv"
+					}
+					f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 					if err != nil {
 						log.Fatalf("Can't open CSV output file for iPerf 3 UDP test: %s", err)
 					}
 					w := csv.NewWriter(f)
-					if m.Start.Test_start.Reverse == 0 {
+					//if m.Start.Test_start.Reverse == 0 {
 						sr := m.End.Sum
 						if err := w.Write([]string{unixtime, m.Start.Accepted_connection.Host, fmt.Sprintf("%f", sr.Jitter_ms), fmt.Sprintf("%d", sr.Bytes), fmt.Sprintf("%f", sr.Seconds), fmt.Sprintf("%d", sr.Lost_packets), fmt.Sprintf("%d", sr.Packets)}); err != nil {
 							log.Fatal("Can't write to CSV output for iPerf 3 UDP test.")
 						}
 						log.Println("iperf3-udp columns: unix_time | host | jitter_ms | bytes_transferred | seconds | lost_packets | total_packets")
-					} else {
-						log.Print("Reverse test result discarded -- not supported by iPerf 2")
-					}
+					//} else {
+					//	log.Print("Reverse test result discarded -- not supported by iPerf 2")
+					//}
 					w.Flush()
 					if err := w.Error(); err != nil {
 						log.Fatalf("Can't write to CSV output for iPerf 3 UDP test: %s", err)
@@ -248,6 +260,9 @@ func csvParser(output io.Reader, srcCmd command) {
 							fn = "iperf2-tcp.csv"
 						}
 					}
+					if fn == "iperf2-tcp-reverse.csv" {
+						log.Println("This is a REVERSE iPerf 2 TCP test.")
+					}
 					f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 					if err != nil {
 						log.Fatalf("Can't open CSV output file for iPerf 2 TCP test: %s", err)
@@ -268,6 +283,7 @@ func csvParser(output io.Reader, srcCmd command) {
 					fn := "iperf2-udp.csv"
 					if record[13] == "1" {
 						fn = "iperf2-udp-reverse.csv"
+						log.Println("This is a REVERSE iPerf 2 UDP test.")
 					}
 					f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 					if err != nil {
