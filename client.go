@@ -7,10 +7,13 @@ import (
 	"time"
 	"strings"
 	"os/exec"
+	"net/http"
+	"net/url"
 )
 
 const (
 	testInterval = 1*time.Hour
+	dataUploadUrl = "http://requestbin.net/r/12xcyt81"
 )
 
 var (
@@ -36,15 +39,18 @@ func runTests() {
 		    log.Println(fmt.Sprint(err) + ": " + string(output))
 		    continue
 		}
+		resp, err := http.PostForm(dataUploadUrl,
+			url.Values{"command": {commands[idxArray[i]]}, "output": {string(output)}})
+		if err != nil {
+			log.Println(fmt.Sprint(err))
+		}
+		resp.Body.Close()
 		switch command[0] {
 			case "iperf3":
-				log.Println("iPerf 3 Result")
-				log.Println(string(output))
+				log.Println("iPerf 3 Result Captured")
 			case "iperf":
-				log.Println("iPerf 2 Result")
-				log.Println(string(output))
+				log.Println("iPerf 2 Result Captured")
 		}
-
 	}
 }
 
