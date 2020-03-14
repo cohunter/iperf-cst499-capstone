@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	testInterval = 1*time.Second
+	testInterval = 1*time.Hour
 )
 
 var (
@@ -33,6 +33,7 @@ func runTests() {
 }
 
 func main() {
+	go runTests()
 	for {
 		select {
 			case <-time.After(testInterval):
