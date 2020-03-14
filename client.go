@@ -4,25 +4,39 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+	"strings"
+)
+
+const (
+	testInterval = 1*time.Second
 )
 
 var (
-	server_address = "198.98.48.214"
+	server_address = "192.168.64.3"
 	commands = [...]string{
-		"iperf -c '%s'",		// iPerf 2 TCP, default options
-		"iperf3 -c '%s'",		// iPerf 3 TCP, default options
-		"iperf -c '%s' -u",		// iPerf 2 UDP, default options
-		"iperf3 -c '%s' -u",	// iPerf 3 UDP, default options
+		"iperf -c '%s' -yC",		// iPerf 2 TCP, default options
+		"iperf3 -c '%s' -J",		// iPerf 3 TCP, default options
+		"iperf -c '%s' -u -yC",		// iPerf 2 UDP, default options
+		"iperf3 -c '%s' -u -J",		// iPerf 3 UDP, default options
 	}
 )
 
-func main() {
+func runTests() {
+	// Each time the tests are run, we randomize the order of the commands.
 	rand.Seed(time.Now().UnixNano())
 	idxArray := rand.Perm(len(commands))
-
-	// Each time the tests are run, we randomize the order of the commands.
-	for i := 0; i < len(commands); i++ {
-		command := fmt.Sprintf(commands[idxArray[i]], server_address)
+	
+	for i := range idxArray {
+		command := strings.Split(fmt.Sprintf(commands[idxArray[i]], server_address), " ")
 		fmt.Println(command)
+	}
+}
+
+func main() {
+	for {
+		select {
+			case <-time.After(testInterval):
+				go runTests()
+		}
 	}
 }
