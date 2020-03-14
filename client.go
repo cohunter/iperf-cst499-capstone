@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 var (
@@ -15,9 +17,12 @@ var (
 )
 
 func main() {
-	fmt.Println(len(commands))
-	for _, e := range commands {
-		fmt.Printf(e, server_address)
-		fmt.Println()
+	rand.Seed(time.Now().UnixNano())
+	idxArray := rand.Perm(len(commands))
+
+	// Each time the tests are run, we randomize the order of the commands.
+	for i := 0; i < len(commands); i++ {
+		command := fmt.Sprintf(commands[idxArray[i]], server_address)
+		fmt.Println(command)
 	}
 }
