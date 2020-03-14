@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 	"strings"
+	"os/exec"
 )
 
 const (
@@ -14,10 +16,10 @@ const (
 var (
 	server_address = "192.168.64.3"
 	commands = [...]string{
-		"iperf -c '%s' -yC",		// iPerf 2 TCP, default options
-		"iperf3 -c '%s' -J",		// iPerf 3 TCP, default options
-		"iperf -c '%s' -u -yC",		// iPerf 2 UDP, default options
-		"iperf3 -c '%s' -u -J",		// iPerf 3 UDP, default options
+		"iperf -c %s -yC -t 1",		// iPerf 2 TCP, default options
+		"iperf3 -c %s -J -t 1",		// iPerf 3 TCP, default options
+		"iperf -c %s -u -yC -t 1",		// iPerf 2 UDP, default options
+		"iperf3 -c %s -u -J -t 1",		// iPerf 3 UDP, default options
 	}
 )
 
@@ -28,7 +30,21 @@ func runTests() {
 	
 	for i := range idxArray {
 		command := strings.Split(fmt.Sprintf(commands[idxArray[i]], server_address), " ")
-		fmt.Println(command)
+		cmd := exec.Command(command[0], command[1:]...)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+		    log.Println(fmt.Sprint(err) + ": " + string(output))
+		    continue
+		}
+		switch command[0] {
+			case "iperf3":
+				log.Println("iPerf 3 Result")
+				log.Println(string(output))
+			case "iperf":
+				log.Println("iPerf 2 Result")
+				log.Println(string(output))
+		}
+
 	}
 }
 
