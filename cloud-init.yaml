@@ -94,13 +94,10 @@ sm_misc:
  - &metasrv_setup |
     cd
     git clone https://github.com/cohunter/iperf-cst499-capstone.git
-    cp iperf-cst499-capstone/ls.go metasrv.go
-    echo '@reboot PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run $HOME/metasrv.go' | crontab -u iperf -
-    PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run metasrv.go
+    echo '@reboot PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run $HOME/iperf-cst499-capstone/metasrv.go' | crontab -u iperf -
+    PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run iperf-cst499-capstone/metasrv.go
 
 runcmd:
- - |
-    curl "https://github.com/cohunter.keys"
  - [ sudo, -Hu, iperf, sh, -c, *iperf_setup ]
  - [ sudo, -Hu, iperf, sh, -c, *iperf3_setup ]
  - [ sudo, -Hu, iperf, sh, -c, *metasrv_setup ]
