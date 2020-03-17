@@ -42,11 +42,11 @@ const (
 var (
 	upstream_addrs = [...]string{
 		"192.168.64.3:5202",
-		"127.0.0.1:5203",
-		"127.0.0.1:5204",
+		"192.168.64.3:5203",
+		"192.168.64.3:5201",
 	}
 	client_map = struct {
-		sync.RWMutex
+		sync.Mutex
 		val map[string]*client
 	}{val: make(map[string]*client)}
 )
@@ -64,16 +64,12 @@ func gotClient(addr net.Conn) *client {
 	if err != nil {
 		log.Fatal(err)
 	}
-	client_map.RLock()
-	if currentClient, ok := client_map.val[remoteIP]; ok {
-		atomic.AddUint32(&currentClient.connections, 1)
-		client_map.RUnlock()
-		return currentClient
-	}
-	client_map.RUnlock()
-
 	client_map.Lock()
 	defer client_map.Unlock()
+	if currentClient, ok := client_map.val[remoteIP]; ok {
+		atomic.AddUint32(&currentClient.connections, 1)
+		return currentClient
+	}
 
 	currentClient := client{ip: remoteIP, connections: 1}
 	client_map.val[currentClient.ip] = &currentClient
@@ -121,8 +117,8 @@ func upstream(clientConn net.Conn, hosts chan string) {
 	defer clientConn.Close()
 
 	pro(clientConn, serverConn)
-	atomic.AddUint32(&currentClient.connections, ^uint32(0)) // decrement by 1
-	if atomic.AddUint32(&currentClient.connections, 0) == 0 {
+	// decrement by 1
+	if atomic.AddUint32(&currentClient.connections, ^uint32(0)) == 0 {
 		if !currentClient.rejected {
 			hosts <- currentClient.upstream
 			log.Println("Free'd upstream:", currentClient.upstream)
