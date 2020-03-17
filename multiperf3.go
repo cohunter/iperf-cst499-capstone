@@ -30,6 +30,8 @@ import (
 	"log"
 	"net"
 	"time"
+	"sync"
+	"sync/atomic"
 )
 
 const (
@@ -43,13 +45,17 @@ var (
 		"127.0.0.1:5203",
 		"127.0.0.1:5204",
 	}
-	client_map = make(map[string]*client)
+	client_map = struct {
+		sync.RWMutex
+		val map[string]*client
+	}{val: make(map[string]*client)}
 )
 
 type client struct {
+	once sync.Once
 	ip          string
 	upstream    string
-	connections int
+	connections uint32
 	rejected    bool
 }
 
@@ -58,14 +64,26 @@ func gotClient(addr net.Conn) *client {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if currentClient, ok := client_map[remoteIP]; ok {
-		currentClient.connections += 1
+	client_map.RLock()
+	if currentClient, ok := client_map.val[remoteIP]; ok {
+		atomic.AddUint32(&currentClient.connections, 1)
+		client_map.RUnlock()
 		return currentClient
 	}
+	client_map.RUnlock()
+
+	client_map.Lock()
+	defer client_map.Unlock()
 
 	currentClient := client{ip: remoteIP, connections: 1}
-	client_map[currentClient.ip] = &currentClient
+	client_map.val[currentClient.ip] = &currentClient
 	return &currentClient
+}
+
+func lostClient(c *client) {
+	client_map.Lock()
+	defer client_map.Unlock()
+	delete(client_map.val, c.ip)
 }
 
 func pro(c net.Conn, s net.Conn) {
@@ -76,11 +94,11 @@ func pro(c net.Conn, s net.Conn) {
 func upstream(clientConn net.Conn, hosts chan string) {
 	currentClient := gotClient(clientConn)
 
-	if len(currentClient.upstream) == 0 {
+	currentClient.once.Do(func() {
 		log.Println("New connection received", currentClient.ip)
 		select {
-		// Wait up to 11 seconds for an upstream to become available.
-		// Default test duration is 10 seconds.
+		// Wait up to waitSeconds seconds for an upstream to become available.
+		// Default iPerf test duration is 10 seconds.
 		case <-time.After(waitSeconds * time.Second):
 			log.Println("No upstream available, will refuse test.")
 			currentClient.upstream = upstream_addrs[0]
@@ -88,13 +106,11 @@ func upstream(clientConn net.Conn, hosts chan string) {
 		case currentClient.upstream = <-hosts:
 			log.Println("Got upstream:", currentClient.upstream)
 			// Give the iPerf 3 process time to accept new client
-			<-time.After(100 * time.Millisecond)
+			<-time.After(10 * time.Millisecond)
 		}
-
+	
 		log.Println("Upstream selected", currentClient.upstream, "for", currentClient.ip)
-	} else {
-		log.Println("Re-using upstream", currentClient.upstream, "for client", currentClient.ip, "total connections:", currentClient.connections)
-	}
+	})
 
 	serverConn, err := net.Dial("tcp", currentClient.upstream)
 	if err != nil {
@@ -105,13 +121,13 @@ func upstream(clientConn net.Conn, hosts chan string) {
 	defer clientConn.Close()
 
 	pro(clientConn, serverConn)
-	currentClient.connections -= 1
-	if currentClient.connections < 1 {
+	atomic.AddUint32(&currentClient.connections, ^uint32(0)) // decrement by 1
+	if currentClient.connections == 0 {
 		if !currentClient.rejected {
 			hosts <- currentClient.upstream
 			log.Println("Free'd upstream:", currentClient.upstream)
 		}
-		delete(client_map, currentClient.ip)
+		lostClient(currentClient)
 	}
 }
 
