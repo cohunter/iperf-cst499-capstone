@@ -122,7 +122,7 @@ func upstream(clientConn net.Conn, hosts chan string) {
 
 	pro(clientConn, serverConn)
 	atomic.AddUint32(&currentClient.connections, ^uint32(0)) // decrement by 1
-	if currentClient.connections == 0 {
+	if atomic.AddUint32(&currentClient.connections, 0) == 0 {
 		if !currentClient.rejected {
 			hosts <- currentClient.upstream
 			log.Println("Free'd upstream:", currentClient.upstream)
