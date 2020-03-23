@@ -13,16 +13,18 @@ import (
 
 const (
 	testInterval = 1*time.Hour
-	dataUploadUrl = "http://requestbin.net/r/12xcyt81"
+	dataUploadUrl = "https://phone_home.regex.be/ingest/client-results-iperf"
 )
 
 var (
-	server_address = "192.168.64.3"
+	server_address = "54.212.26.193"
 	commands = [...]string{
-		"iperf -c %s -yC -t 1",		// iPerf 2 TCP, default options
-		"iperf3 -c %s -J -t 1",		// iPerf 3 TCP, default options
-		"iperf -c %s -u -yC -t 1",		// iPerf 2 UDP, default options
-		"iperf3 -c %s -u -J -t 1",		// iPerf 3 UDP, default options
+		"iperf -c %s -yC -p 5002",		// iPerf 2 TCP, default options
+		"iperf3 -c %s -J -p 5009",		// iPerf 3 TCP, default options
+		"iperf -c %s -u -yC -p 5002",		// iPerf 2 UDP, default options
+		"iperf3 -c %s -u -J -p 5009",		// iPerf 3 UDP, default options
+		"iperf3 -c %s -J -u -b 10m -p 5009",	// iPerf 3 UDP, 10mbit bandwidth target
+		"iperf -c %s -yC -u -b 10m -p 5002",	// iPerf 2 UDP, 10mbit bandwidth target
 	}
 )
 
