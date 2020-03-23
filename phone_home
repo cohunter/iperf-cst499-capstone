@@ -15,7 +15,7 @@ log_format cilog escape=json '{'
 	'"request":"$request",'
 	'"request_body":"$request_body",'
 	'"status":"$status",'
-	'"http_user_agent":"$http_user_agent",'
+	'"http_user_agent":"$http_user_agent"'
 '}';
 
 server {
