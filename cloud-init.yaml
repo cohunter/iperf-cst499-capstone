@@ -11,111 +11,113 @@ users:
    primary_group: netservices
    sudo: false
    ssh_authorized_keys:
+     - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHjePLheYkqz6wY6G4ja+GtZ1QFiubHKNkhIQeB/CgzW
+   lock_passwd: true
+   shell: /bin/bash
+ - name: cohunter
+   gecos: Administrative User
+   sudo: ALL=(ALL) NOPASSWD:ALL
+   ssh_import_id: gh:cohunter
+   ssh_authorized_keys:
      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDYBWRXbH2M5+DVgPN4upT4RKvC3B6FGFwq0n1lZAEm7
+   shell: /usr/bin/zsh
 
 package_update: true
 package_upgrade: true
 package_reboot_if_required: true
 
 ssh_pwauth: false
-ssh_keys:
-  rsa_private: |
-    -----BEGIN RSA PRIVATE KEY-----
-    MIIEowIBAAKCAQEArfQDThw9qzNUnNmtJiRj9yiRhZkZsqi9jg8y84FCRYoeZOVG
-    5aJr8Xad7vzNaOnfhz2HNJVbH1rGXwdWKHQqtkSafYFHP7JRDEpEtNZGJZxq+xX5
-    PodJE2+TcXnSgtAf91Gf7JfBWHQs6Ui8Ua9IAIGAOUGGZqgNRvQ94u3LKVSYAh4t
-    y7Eslet8pPPe+qVJebcrdtJBzgeqnN7h7Pt08JpRPQGXbg+9B+k28vfUAqhNG6Rt
-    JZmlfWXvU7wyi/YBf0L8mHin7uI7JmxzkMl0bVc24jEe/a9Vqgx82a/zFPusvpup
-    UYMOZxsR+cnttnEpTSmz77AmFv11HiiM3dDKTQIDAQABAoIBAGpPyDlTryjTXTHj
-    Ixw9f07NX2qL8BWtZPPOPDBv3gXL7Nly+opbYqcW/FzT6eHllTP9GYW8hg06mCP5
-    wuFEZdoxQU3U1auLGldtiGIQ1pwj5YoAmuxpF/Ml7LGcZ1iFRBQNsbSR5ptdnRkR
-    1+4ANvwAKVJUxoQ0zrB/ktb+x3xA8RNL6MzzXh9GVmZW4XD8Ot5fje6sRkSbQTjg
-    /ljKrbo7bOdmiUFlmuP8ObPBvuUeO7SToQPlO+2m1CnoMLCmxjgh7e2btZr0KtDq
-    cYMgtCcgief+J8YaaJzZQna72oCSAab5QM5BkzQ7cFMYSUIWbT/mk9sYN8o/zhz1
-    0HRDy+0CgYEA5qkYe0MjzjqxQP385+gnWhUgWcxYeGGvirmwAwW8hptctfVmOeUf
-    HB4JH20ZgrZs6sKHVpUk3/pzEDAx2F5P35gHVRH+gKx/mrDP4sXvWuL8ynpVSYCQ
-    AKYH1X9fPPuIK9+vX+qV9Q53i4lc+8WoUSriGSRsBySaXBjYHAuxTCsCgYEAwRAg
-    fxhi26iBKXOBM9tHEJSODEFxP4OPszR5wKDEKL1GTfgHjpjEKtBAP4IqNNmWFMTX
-    OzdjeIUVxUSBdTPlm4jhWr2K4pC3BaSqFLkEqMALRuPxioOyt1qpn6AfHjBuj7MD
-    hxpGyDNaVQkdhy4wo/1dAu7uLLlWwN0meked72cCgYABMIoRyKzcmWzkmuq8/3OE
-    gWtjSyyBom9XVdHUkikAwLhfr95RGh9o87a0VMm25N327/3msmo4RYBmavk21nWu
-    /4e6JpebbkhSMetAjijH3TfUi4D5GhKkDjcoILoLBHkVUNgEtJ8FXoe7ToAORFyz
-    3nbADnIIL2YkZ3Rl4KGPdQKBgGAusqHe+lFIr6CBBNta4Rqnh+UfLVZhKtQyzn1j
-    GpbZRQ9PBCTMgt55haieJnzR8e1C6596xrmiQ+hVatGDG17TYMIeL/UT97p+AKX2
-    TxXrJzMYGJvTZNPn/R2jXh1iL5Kzsow6UQ0oWFaJBgb0whLRBOeTNWFerJPFGYhN
-    6ab9AoGBALSz5POSFu1GRiVlcmLh1Zsu32J3t7Kmlhh6oEuaCjpLH73sP92u7R3A
-    5iOi4dglVMS9J7lP6IfGpeyMf2tmsxJDCN+o4G23ppEleeHTltAnF6IvvpYde9tE
-    1Dt4dXSs9UF41PfiY5MXD7KfbbbHarXOGi9arAA4pe7p9Lv7fkBc
-    -----END RSA PRIVATE KEY-----
-  rsa_public: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt9ANOHD2rM1Sc2a0mJGP3KJGFmRmyqL2ODzLzgUJFih5k5Ublomvxdp3u/M1o6d+HPYc0lVsfWsZfB1YodCq2RJp9gUc/slEMSkS01kYlnGr7Ffk+h0kTb5NxedKC0B/3UZ/sl8FYdCzpSLxRr0gAgYA5QYZmqA1G9D3i7cspVJgCHi3LsSyV63yk8976pUl5tyt20kHOB6qc3uHs+3TwmlE9AZduD70H6Tby99QCqE0bpG0lmaV9Ze9TvDKL9gF/QvyYeKfu4jsmbHOQyXRtVzbiMR79r1WqDHzZr/MU+6y+m6lRgw5nGxH5ye22cSlNKbPvsCYW/XUeKIzd0MpN
-  
-  ed25519_private: |
-    -----BEGIN OPENSSH PRIVATE KEY-----
-    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-    QyNTUxOQAAACD94pKE2wUdyuh1TNIUPFQ8nIPHF+uCZZKLVOYrSGehWgAAAJAyottYMqLb
-    WAAAAAtzc2gtZWQyNTUxOQAAACD94pKE2wUdyuh1TNIUPFQ8nIPHF+uCZZKLVOYrSGehWg
-    AAAEAadikIiZaYCpuNsxGduAGNFl05vw+NsizBQcDVRUbk5P3ikoTbBR3K6HVM0hQ8VDyc
-    g8cX64JlkotU5itIZ6FaAAAACnJvb3RAaXBlcmYBAgM=
-    -----END OPENSSH PRIVATE KEY-----
-  ed25519_public: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP3ikoTbBR3K6HVM0hQ8VDycg8cX64JlkotU5itIZ6Fa
-
 
 disable_ec2_metadata: true
 locale: en_US.UTF-8
 locale_configfile: /etc/default/locale
 
+# tmux and egrep are present in the base and minimized Ubuntu 18.04 image
+# sudo is not present in the minimized Ubuntu 18.04 image
 packages:
  - golang-go
  - build-essential
  - git
+ - zsh
  - iptables-persistent
  - netfilter-persistent
+ - nginx
+ - sudo
+
+# Assume the network config will be provided by the selected base image.
+# Prevents error on Scaleway/Online.net
+network: {}
 
 sm_misc:
+# Download and compile iPerf 2.0.13 from source
  - &iperf_setup |
     cd
     git clone git://git.code.sf.net/p/iperf2/code
     cd code
     git reset --hard 41bfc67a9d2c654c360953575ee5160ee4d798e7
     ./configure
-    make -j2
+    make -j4
     mkdir -p ~/bin
     install -g netservices src/iperf -t ~/bin
 
+# Download and compile iPerf 3.7 from source
  - &iperf3_setup |
     cd
     git clone https://github.com/esnet/iperf.git
     cd iperf
     git reset --hard dfcea9f6a09ead01089a3c9d20c7032f2c0af2c1
     ./configure
-    make -j2
+    make -j4
     mkdir -p ~/bin
     install -g netservices src/iperf3 -t ~/bin
     cp -r src/.libs ~/bin/
 
+# Download our program which runs iPerf 2 and iPerf 3 instances and records the
+# selected portions of the output to CSV for analysis. Configure crontab to
+# automatically start the server in a tmux session if the instance is rebooted.
  - &metasrv_setup |
     cd
     git clone https://github.com/cohunter/iperf-cst499-capstone.git
     echo '@reboot PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run $HOME/iperf-cst499-capstone/metasrv.go' | crontab -u iperf -
     PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run iperf-cst499-capstone/metasrv.go
 
-- &firewall_setup |
+# Configure the firewall to reject connections from IP addresses which are not
+# either within our planned source ranges for the tests or CloudFlare. Use
+# netfilter-persistent and the iptables-persistent plugin to make the firewall
+# configuration restore itself if the instance is rebooted.
+ - &firewall_setup |
     iptables -I INPUT -p tcp --dport 5000:5300 -j REJECT
     iptables -I INPUT -p udp --dport 5000:5300 -j REJECT
     iptables -I INPUT -s 98.192.0.0/10 -p tcp --dport 5000:5300 -j ACCEPT
     iptables -I INPUT -s 98.192.0.0/10 -p udp --dport 5000:5300 -j ACCEPT
+    curl https://www.cloudflare.com/ips-v4 2>/dev/null | while read line; do echo "$line" | egrep -qx "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[1-3][0-9]"; [ $? -eq 0 ] && iptables -I INPUT -s "$line" -j ACCEPT; [ $? -ne 0 ] && echo -E "WARN: IPv4 range not in expected format: $line"; done
     netfilter-persistent save
     
+    ip6tables -I INPUT -j DROP
+    ip6tables -I INPUT -s 2001:bc8::/32 -j ACCEPT
+    curl https://www.cloudflare.com/ips-v6 2>/dev/null | while read line; do echo "$line" | egrep -qx "[0-9a-f:]{5,16}::/[1-3]{1}[0-9]{1}"; [ "$?" -eq 0 ] && ip6tables -I INPUT -s "$line" -j ACCEPT; [ "$?" -ne 0 ] && echo -E "WARN: IPv6 range not in expected format: $line"; done
+    netfilter-persistent save
+
+# Minimized Ubuntu 18.04 image does not come with default sudo config to allow
+# the root user to run sudo. Here we add the root user to the sudoers file.
+ - &sudo_root |
+    echo 'root    ALL=(ALL:ALL) ALL' | EDITOR='tee -a' visudo
+
 runcmd:
+ - [ sh, -c, *sudo_root ]
  - [ sudo, -Hu, iperf, sh, -c, *iperf_setup ]
  - [ sudo, -Hu, iperf, sh, -c, *iperf3_setup ]
  - [ sudo, -Hu, iperf, sh, -c, *metasrv_setup ]
  - [ sh, -c, *firewall_setup ]
 
-#phone_home:
-# url: |-
-#   http://requestbin.net/r/18mq4xd1
-# post: [ instance_id, pub_key_rsa, pub_key_ed25519 ]
+# Submit the instance name, IP address, and generated public keys to our
+# collection endpoint. See phone_home nginx config in the GitHub repository.
+phone_home:
+ url: |-
+   https://phone_home.regex.be/ingest/cloud-init-iperf
+ post: all
+ tries: 3
 
+# We configure all of the servers to use UTC time to minimize errors and extra
+# work relating to timezone conversion during data analysis.
 timezone: UTC
-
