@@ -68,6 +68,8 @@ packages:
  - golang-go
  - build-essential
  - git
+ - iptables-persistent
+ - netfilter-persistent
 
 sm_misc:
  - &iperf_setup |
@@ -97,10 +99,18 @@ sm_misc:
     echo '@reboot PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run $HOME/iperf-cst499-capstone/metasrv.go' | crontab -u iperf -
     PATH="$HOME/bin:$PATH" tmux new-session -d -s metasrv go run iperf-cst499-capstone/metasrv.go
 
+- &firewall_setup |
+    iptables -I INPUT -p tcp --dport 5000:5300 -j REJECT
+    iptables -I INPUT -p udp --dport 5000:5300 -j REJECT
+    iptables -I INPUT -s 98.192.0.0/10 -p tcp --dport 5000:5300 -j ACCEPT
+    iptables -I INPUT -s 98.192.0.0/10 -p udp --dport 5000:5300 -j ACCEPT
+    netfilter-persistent save
+    
 runcmd:
  - [ sudo, -Hu, iperf, sh, -c, *iperf_setup ]
  - [ sudo, -Hu, iperf, sh, -c, *iperf3_setup ]
  - [ sudo, -Hu, iperf, sh, -c, *metasrv_setup ]
+ - [ sh, -c, *firewall_setup ]
 
 #phone_home:
 # url: |-
