@@ -1,0 +1,47 @@
+# This is an nginx config file for receiving the phone_home from cloud-init.
+
+# In actual deployment, we would use TLS/SSL. For our testing purposes, this
+# endpoint does not require TLS/SSL for several reasons, including: it should
+# receive only public keys; both it and the test instances are firewalled to
+# accept connections only from CloudFlare over IPv6; and it is located in a DC
+# which has peering to CloudFlare.
+#
+# In actual deployment it would be important also to periodically check for
+# changes to the CloudFlare IP ranges via https://www.cloudflare.com/ips/
+
+log_format cilog escape=json '{'
+	'"remote_addr":"$remote_addr",'
+	'"received_time":"$time_iso8601",'
+	'"request":"$request",'
+	'"request_body":"$request_body",'
+	'"status":"$status",'
+	'"http_user_agent":"$http_user_agent",'
+'}';
+
+server {
+	listen [::]:80;
+
+	server_name phone_home.regex.be;
+
+	location = /ingest/cloud-init-iperf {
+		set_real_ip_from 2400:cb00::/32;
+		set_real_ip_from 2606:4700::/32;
+		set_real_ip_from 2803:f800::/32;
+		set_real_ip_from 2405:b500::/32;
+		set_real_ip_from 2405:8100::/32;
+		set_real_ip_from 2c0f:f248::/32;
+		set_real_ip_from 2a06:98c0::/29;
+		real_ip_header CF-Connecting-IP;
+		access_log /var/log/nginx/cloud-init-iperf.log cilog;
+		proxy_set_header Host phone_home.regex.be;
+		proxy_pass http://[::1]/200;
+	}
+
+	location = /200 {
+		return 200;
+	}
+
+	location / {
+		return 403;
+	}
+}
