@@ -24,7 +24,7 @@ type command struct {
 var (
 	// Must specify port explicitly for iPerf 2 so that reverse tests can be checked
 	commands = [...]string{
-		"iperf3 -s -J -I /tmp/iperf3.pid", // iperf 3 handles tcp/udp & multiple clients
+		"iperf3 -s -J -p 5009 -I /tmp/iperf3.pid", // iperf 3 handles tcp/udp & multiple clients
 		"iperf -s -u -yC -V -p 5001",                  // iperf 2 udp, ipv4/6
 		"iperf -s -yC -V -p 5001",                     // iperf 2 tcp, ipv4/6
 		"iperf -s -yC -V -p 5002",             // iperf 2 tcp alternate port
