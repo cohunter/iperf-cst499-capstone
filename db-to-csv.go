@@ -17,6 +17,9 @@ import (
 // Appends to files; ensure they are empty before running.
 // rm iperf3-*.csv
 func jsonHandler(jsonStr string, timestamp int64, command string) {
+	if ( true ) {
+		return
+	}
 	var m map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
 		log.Println("JSON decoding error")
@@ -174,13 +177,10 @@ func csvHandler(csvStr string, timestamp int64, command string) {
 			fn = fmt.Sprintf("server_report-%s", fn)
 		}
 		
-		if len(record) == 9 {
-			fn = fmt.Sprintf("tcp-%s", fn)
-		} else if len(record) == 14 {
+		if ( strings.Contains(command, "-u") ) {
 			fn = fmt.Sprintf("udp-%s", fn)
 		} else {
-			log.Printf("Unexpected record length: %+v", record)
-			return
+			fn = fmt.Sprintf("tcp-%s", fn)
 		}
 		
 		if ( strings.Contains(command, "-b 10m") ) {
