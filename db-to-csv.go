@@ -17,9 +17,6 @@ import (
 // Appends to files; ensure they are empty before running.
 // rm iperf3-*.csv
 func jsonHandler(jsonStr string, timestamp int64, command string) {
-	if ( true ) {
-		return
-	}
 	var m map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
 		log.Println("JSON decoding error")
