@@ -11,12 +11,8 @@ import (
 	"net/url"
 )
 
-const (
-	testInterval = 1*time.Hour
-	dataUploadUrl = "https://phone_home.regex.be/ingest/client-results-iperf"
-)
-
 var (
+	client_name = "changeme"
 	server_address = "54.212.26.193"
 	commands = [...]string{
 		"iperf -c %s -yC -p 5002",		// iPerf 2 TCP, default options
@@ -28,7 +24,19 @@ var (
 	}
 )
 
+const (
+	testInterval = 1*time.Hour
+	dataUploadUrl = "https://phone_home.regex.be/ingest/client-results-iperf"
+)
+
 func runTests() {
+	// Catch unexpected errors, rather than crashing
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("ERROR: %v\n", err)
+		}
+	}()
+	
 	// Each time the tests are run, we randomize the order of the commands.
 	rand.Seed(time.Now().UnixNano())
 	idxArray := rand.Perm(len(commands))

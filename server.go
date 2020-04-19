@@ -14,14 +14,16 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS client_data (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, unix_timestamp INTEGER, command TEXT, output TEXT)`)
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS client_data (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, unix_timestamp INTEGER, client_name TEXT, command TEXT, output TEXT)`)
 	if err != nil {
 		log.Fatal(err)
 	}
 	dataPostHandler := func(w http.ResponseWriter, req *http.Request) {
+		client_name := req.FormValue("client_name")
 		command	:= req.FormValue("command")
 		output	:= req.FormValue("output")
-		if len(output) == 0 || len(command) == 0 {
+		
+		if len(output) == 0 || len(command) == 0 || len(client_name) == 0 {
 			http.NotFound(w, req)
 			return
 		}
@@ -30,12 +32,12 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		stmt, err := tx.Prepare("INSERT INTO client_data (unix_timestamp, command, output) VALUES (strftime('%s','now'), ?, ?)")
+		stmt, err := tx.Prepare("INSERT INTO client_data (unix_timestamp, client_name, command, output) VALUES (strftime('%s','now'), ?, ?, ?)")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer stmt.Close()
-		_, err = stmt.Exec(command, output)
+		_, err = stmt.Exec(client_name, command, output)
 		if err != nil {
 			log.Fatal(err)
 		}
