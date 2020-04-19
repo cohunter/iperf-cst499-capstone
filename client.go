@@ -19,7 +19,7 @@ var (
 		"iperf3 -c %s -J -p 5009",		// iPerf 3 TCP, default options
 		"iperf -c %s -u -yC -p 5002",		// iPerf 2 UDP, default options
 		"iperf3 -c %s -u -J -p 5009",		// iPerf 3 UDP, default options
-		"iperf3 -c %s -u -J -p 5008",		// multiperf3 instance
+		"iperf3 -c %s -J -p 5008",		// multiperf3 instance, tcp only
 		"iperf3 -c %s -J -u -b 3m -p 5009",	// iPerf 3 UDP, 3mbit bandwidth target
 		"iperf -c %s -yC -u -b 3m -p 5002",	// iPerf 2 UDP, 3mbit bandwidth target
 	}
