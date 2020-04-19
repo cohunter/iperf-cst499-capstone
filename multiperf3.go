@@ -36,14 +36,14 @@ import (
 
 const (
 	waitSeconds   = 11
-	listenAddress = ":5201"
+	listenAddress = ":5008"
 )
 
 var (
 	upstream_addrs = [...]string{
-		"192.168.64.3:5202",
-		"192.168.64.3:5203",
-		"192.168.64.3:5201",
+		"127.0.0.1:5201",
+		"127.0.0.1:5202",
+		"127.0.0.1:5203",
 	}
 	client_map = struct {
 		sync.Mutex
