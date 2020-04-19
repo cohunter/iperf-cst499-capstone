@@ -50,7 +50,7 @@ func runTests() {
 		    continue
 		}
 		resp, err := http.PostForm(dataUploadUrl,
-			url.Values{"command": {commands[idxArray[i]]}, "output": {string(output)}})
+			url.Values{"client_name": {client_name}, "command": {commands[idxArray[i]]}, "output": {string(output)}})
 		if err != nil {
 			log.Println(fmt.Sprint(err))
 		}
