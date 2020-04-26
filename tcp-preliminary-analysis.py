@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+import local_utils
+
 i2 = pd.read_csv("iperf2-tcp.csv", header=None, names=["unixtime", "remote_host", "transfer_amount", "amount_magnitude", "seconds", "transfer_rate", "rate_magnitude"])
 i2.remote_host = i2.remote_host.str.replace('::ffff:', '')
 
@@ -37,13 +39,16 @@ for key in i2.rate_magnitude.value_counts().keys():
 i2['bits_per_second'] = pd.concat(datas).sort_index()
 i2.drop(['transfer_amount', 'amount_magnitude', 'transfer_rate', 'rate_magnitude'], axis=1, inplace=True)
 i2 = i2[i2.columns.tolist()[0:2] + i2.columns.tolist()[3:] + i2.columns.tolist()[2:3]]
-i2['unixtime'] = pd.to_datetime(i2['unixtime'], unit='s')
+i2['unix_timestamp'] = pd.to_datetime(i2['unixtime'], unit='s')
 
 i3 = pd.read_csv("iperf3-tcp.csv", header=None, names=["unixtime", "remote_host", "bytes", "bits_per_second", "seconds"])
-i3['unixtime'] = pd.to_datetime(i3['unixtime'], unit='s')
+i3['unix_timestamp'] = pd.to_datetime(i3['unixtime'], unit='s')
 
-i2.set_index(i2.unixtime, inplace=True)
-i3.set_index(i3.unixtime, inplace=True)
+i2.set_index(i2.unix_timestamp, inplace=True)
+i3.set_index(i3.unix_timestamp, inplace=True)
+
+i2.unixtime = i2.unix_timestamp
+i3.unixtime = i3.unix_timestamp
 
 i2 = i2[i2.unixtime > '2020-03-05']
 i3 = i3[i3.unixtime > '2020-03-05']
@@ -90,3 +95,6 @@ ax.legend(['iPerf 3','iPerf 2'])
 ax.set_xlabel('Date')
 ax.set_ylabel('Bytes (1e8)')
 plt.show()
+
+local_utils.compare_percentiles(i2, i3, col='bits_per_second', title='Transfer Rate', description='TCP Throughput')
+local_utils.compare_std(i2, i3, col='bits_per_second', title='Transfer Rate', description='TCP Throughput')
