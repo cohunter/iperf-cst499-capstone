@@ -16,8 +16,8 @@
     <title> iPerf2 & iPerf3 Performance Comparison </title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!--<base href="https://corey.to/capstone/">-->
-    <base href="http://localhost:5000/">
+    <base href="https://corey.to/capstone/">
+    <!--<base href="http://localhost:5000/">-->
     <style type="text/css">
         nav[role="navigation"] {
             position: fixed;
@@ -41,7 +41,12 @@
         }
 
         .card {
-            margin-bottom: 2em;
+            margin-top: 2em;
+        }
+
+        .card .scrolltarget {
+            position: absolute;
+            top: -40px;
         }
 
         .card-img-top {
@@ -108,38 +113,41 @@
                 <h6 class="d-flex justify-content-between align-items-center px-3 mb-1 mt-4 text-muted">Analysis Type</h6>
 
                 <ul class="flex-column nav nav-pills nav-fill">
-                    {% macro type(name) %}
+                    {% macro type(link) %}
                     <li class="nav-item">
-                        <a class="nav-link">{{name}}</a>
+                        <a class="nav-link" href="#{{ link }}">{{link}}</a>
                     </li>
                     {% endmacro %}
-                    {{ type('TCP') }}
                     {{ type('UDP') }}
                     {{ type('UDP (3mbit)') }}
+                    {{ type('TCP') }}
+                    {{ type('multiperf3') }}
                 </ul>
             </nav>
             <main role="main" class="col-md-9 col-lg-10 ml-sm-auto">
                 <h3>Analysis of results from client: {{ selected_client }}</h3>
-                {% macro card(imagename, subtitle, dataurl) %}
+                {% macro card(imagename, subtitle, dataurl, tag) %}
                 <div class="card">
+                    <a class="scrolltarget" id="{{ tag }}"></a>
                     <img src="client/{{ selected_client }}/{{ imagename }}" class="card-img-top">
-                    <div class="card-body border-top">
+                    <div class="card-body">
                         <p class="card-text text-muted">{{ subtitle }}</p>
                         <hr>
-                        <p class="card-text"><em>Load this dataset as a pandas dataframe:</em></p>
+                        <p class="card-text"><details>
+                            <summary>Load this dataset as a pandas dataframe</summary>
 <pre><code># Get started by copy/pasting this code at https://colab.research.google.com/
 # This is a merged dataframe; _x values are for iPerf 2, _y values are for iPerf 3
 
 import pandas as pd
 df = pd.read_csv("https://corey.to/capstone/client/{{ selected_client }}/{{ dataurl }}")
-df.info()</code></pre>
+df.info()</code></pre></details>
                     </div>
                 </div>
                 {% endmacro %}
-                {{ card('scatter.png', 'UDP Jitter by Date, Testing Period 3', 'udp.csv')}}
-                {{ card('scatter.png?dataset=udp3m', 'UDP Jitter by Date, 3mbit target, Testing Period 3', 'udp3m.csv')}}
-                {{ card('rate.png', 'TCP Throughput and Transfer Totals by Date, iPerf 2 vs iPerf 3 Testing Period 3', 'tcp.csv')}}
-                {{ card('rate.png?dataset=multiperf3', 'TCP Throughput and Transfer Totals by Date, iPerf 3 vs multiperf3, Testing Period 3', 'multiperf3.csv')}}
+                {{ card('scatter.png', 'UDP Jitter by Date, Testing Period 3', 'udp.csv', 'UDP')}}
+                {{ card('scatter.png?dataset=udp3m', 'UDP Jitter by Date, 3mbit target, Testing Period 3', 'udp3m.csv', 'UDP (3mbit)')}}
+                {{ card('rate.png', 'TCP Throughput and Transfer Totals by Date, iPerf 2 vs iPerf 3 Testing Period 3', 'tcp.csv', 'TCP')}}
+                {{ card('rate.png?dataset=multiperf3', 'TCP Throughput and Transfer Totals by Date, iPerf 3 vs multiperf3, Testing Period 3', 'multiperf3.csv', 'multiperf3')}}
                 
             </main>
         </div>
