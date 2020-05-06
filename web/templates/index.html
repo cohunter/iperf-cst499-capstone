@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title> iPerf2 & iPerf3 Performance Comparison </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <base href="https://corey.to/capstone/">
+    <style type="text/css">
+        nav[role="navigation"] {
+            position: fixed;
+            height: 100vh;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1)
+        }
+
+        nav[role="navigation"] h6 {
+            font-variant: small-caps;
+        }
+
+        nav[role="navigation"] a:not([class*="active"]):hover {
+            color: #FFF;
+            background-color: rgb(46, 72, 219);
+        }
+
+        [role="main"],
+        nav[role="navigation"] {
+            padding-top: 78px;
+            /* Space for fixed navbar */
+        }
+
+        .card {
+            margin-bottom: 2em;
+        }
+
+        card-body pre > code {
+            padding-left: 1.25em;
+        }
+
+        @media (min-width: 768px) {
+
+            [role="main"],
+            nav[role="navigation"] {
+                padding-top: 48px;
+                /* Space for fixed navbar */
+            }
+        }
+    </style>
+    <script type="text/javascript">
+        window.addEventListener('DOMContentLoaded', () => {
+            let clientSelector = document.querySelector('select[role="navigation"]');
+
+            // Redirect on change
+            clientSelector.addEventListener('change', (event) => {
+                window.location = document.baseURI + '/client/' + encodeURIComponent(event.target.value);
+            });
+
+            // Enable the client selection
+            clientSelector.removeAttribute('disabled');
+        });
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-sm-3 col-md-3 col-lg-2 mr-0" href="#">Team 12 Capstone</a>
+        <select role="navigation" class="form-control" disabled>
+            <option value disabled selected>Select a client to view...</option>
+            {% for client in clients %}
+            <option value="{{ client[0] }}">{{ client[0] }}&nbsp;({{ client[1] }})</option>
+            {% endfor %}
+        </select>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <nav role="navigation" class="col-md-3 col-lg-2 d-none d-md-block">
+
+
+                <h6 class="d-flex justify-content-between align-items-center px-3 mb-1 text-muted">Test Results: {{ result_count }}</h6>
+                <ul class="flex-column nav nav-pills nav-fill">
+                    {% macro nav(client_name) %}
+                    <li class="nav-item"><a class="nav-link
+                    {% if client_name == selected_client %}
+                    active
+                    {% endif %}
+                    " href="client/{{ client_name }}">{{ client_name }}</a></li>
+                    {% endmacro %}
+                    {% for client in clients %}
+                    {{ nav(client[0]) }}
+                    {% endfor %}
+                </ul>
+
+                <h6 class="d-flex justify-content-between align-items-center px-3 mb-1 mt-4 text-muted">Analysis Type</h6>
+
+                <ul class="flex-column nav nav-pills nav-fill">
+                    {% macro type(name) %}
+                    <li class="nav-item">
+                        <a class="nav-link">{{name}}</a>
+                    </li>
+                    {% endmacro %}
+                    {{ type('TCP') }}
+                    {{ type('UDP') }}
+                    {{ type('UDP (3mbit)') }}
+                </ul>
+            </nav>
+            <main role="main" class="col-md-9 col-lg-10 ml-sm-auto">
+                <h3>Analysis of results from client: {{ selected_client }}</h3>
+                <div class="card">
+                    <img src="client/{{ selected_client }}/scatter.png" class="card-img-top">
+                    <div class="card-body border-top">
+                        <p class="card-text text-muted">UDP Jitter by Date, Testing Period 3</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="client/{{ selected_client }}/rate.png" class="card-img-top">
+                    <div class="card-body border-top">
+                        <p class="card-text text-muted">TCP Throughput and Transfer Totals by Date, Testing Period 3</p>
+                        <p class="card-text"><em>Load this dataset as a pandas dataframe:</em></p>
+<pre><code># Get started by copy/pasting this code at https://colab.research.google.com/
+# This is a merged dataframe; _x values are for iPerf 2, _y values are for iPerf 3
+
+import pandas as pd
+df = pd.read_csv("https://corey.to/capstone/client/{{ selected_client }}/tcp.csv")
+df.info()</code></pre>
+                    </div>
+                </div>
+                <figure class="figure">
+                    <img src="client/{{ selected_client }}/scatter.png" class="figure-img img-fluid rounded">
+                    <figcaption class="figure-caption text-justify">UDP Jitter by Date, Testing Period 3</figcaption>
+                </figure>
+                <hr>
+                <img src="https://i.imgur.com/Sp0gc1F.png">
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

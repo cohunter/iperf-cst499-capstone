@@ -34,8 +34,9 @@ def reindex(*dfs, col='unix_timestamp'):
 
     """
     for df in dfs:
-        df['unix_timestamp'] = pd.to_datetime(df[col], unit='s')
-        df.set_index(df['unix_timestamp'], inplace=True)
+        if df.index.name is not col:
+            df['unix_timestamp'] = pd.to_datetime(df[col], unit='s')
+            df.set_index(df['unix_timestamp'], inplace=True)
 
 def merge(*dfs, time=pd.Timedelta('5m')):
     """
@@ -214,3 +215,38 @@ def scatter_by_date(*dfs, col='Jitter', title='UDP Jitter by Date', subtitle='',
     remove_colorbar_labels(fig)
     adjust_xlim_to_index(ax[0], df)
     add_scale_labels(ax[0], ax[1], label=label)
+    return fig
+
+def ratebydate(df1, df2, title, scale=1e7):
+    merged = reindex_and_merge(df1, df2)
+    p1_95th, p2_95th, max_95th = get_percentiles(merged, 'transfer_rate')
+    pct_difference_95th = (((p1_95th / p2_95th)-1)*100)
+    
+    plt.rcParams['figure.figsize'] = (16,10)
+    fig, ax = plt.subplots(2,1, sharey=True, sharex=True)
+    fig.suptitle('Transfer Rate and Totals ({})'.format(title))
+    merged['transfer_rate_x'].plot(ax=ax[0], alpha=0.9)
+    merged['transfer_amount_x'].plot(ax=ax[0], alpha=0.5)
+    ax[0].plot(merged['unix_timestamp'], [merged['transfer_rate_x'].mean()]*len(merged['unix_timestamp']), color='y', label='Mean', alpha=0.9)
+    ax[0].annotate('  '+str(round(merged['transfer_rate_x'].mean()/scale,3)), xy=(ax[0].get_xlim()[1]-.75, merged['transfer_rate_x'].mean()), xycoords='data', textcoords='offset points', xytext=(0,0))
+    ax[0].set_title('iPerf 3')
+    ax[0].plot(merged['unix_timestamp'], [merged['transfer_rate_x'].median()]*len(merged['transfer_rate_x']), color='g', label='Median', alpha=0.9)
+    ax[0].annotate('  '+str(round(merged['transfer_rate_x'].median()/scale,3)), xy=(ax[0].get_xlim()[0], merged['transfer_rate_x'].median()), xycoords='data', textcoords='offset points', xytext=(0,0))
+    
+    ax[0].legend(['bits per second', 'transfer amount (bytes)', 'mean (bits per second)', 'median (bits per second)'])
+    
+    merged['transfer_rate_y'].plot(ax=ax[1], alpha=0.9)
+    merged['transfer_amount_y'].plot(ax=ax[1], alpha=0.5)
+    ax[1].plot(merged['unix_timestamp'], [merged['transfer_rate_y'].mean()]*len(merged['unix_timestamp']), color='y', label='Mean', alpha=0.9)
+    ax[1].annotate('  '+str(round(merged['transfer_rate_y'].mean()/scale,3)), xy=(ax[1].get_xlim()[1]-.75, merged['transfer_rate_y'].mean()), xycoords='data', textcoords='offset points', xytext=(0,0))
+    
+    ax[1].plot(merged['unix_timestamp'], [merged['transfer_rate_y'].median()]*len(merged['transfer_rate_y']), color='g', label='Median', alpha=0.9)
+    ax[1].annotate('  '+str(round(merged['transfer_rate_y'].median()/scale,3)), xy=(ax[1].get_xlim()[0], merged['transfer_rate_y'].median()), xycoords='data', textcoords='offset points', xytext=(0,0))
+    ax[1].set_title('iPerf 2')
+    ax[1].legend(['bits per second', 'transfer amount (bytes)', 'mean (bits per second)', 'median (bits per second)'])
+    
+    pct_difference = ((merged['transfer_rate_x'].mean() / merged['transfer_rate_y'].mean())-1)*100
+    ax[1].set_xlabel(f'Percent difference iPerf 3 vs iPerf 2, mean bits per second: {pct_difference:.3}%\n'+
+                     f'95th percentile difference: {pct_difference_95th:.3}%')
+
+    return fig
