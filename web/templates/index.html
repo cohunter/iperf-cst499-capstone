@@ -16,7 +16,8 @@
     <title> iPerf2 & iPerf3 Performance Comparison </title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <base href="https://corey.to/capstone/">
+    <!--<base href="https://corey.to/capstone/">-->
+    <base href="http://localhost:5000/">
     <style type="text/css">
         nav[role="navigation"] {
             position: fixed;
@@ -41,6 +42,10 @@
 
         .card {
             margin-bottom: 2em;
+        }
+
+        .card-img-top {
+            max-width: 1600px;
         }
 
         card-body pre > code {
@@ -115,31 +120,27 @@
             </nav>
             <main role="main" class="col-md-9 col-lg-10 ml-sm-auto">
                 <h3>Analysis of results from client: {{ selected_client }}</h3>
+                {% macro card(imagename, subtitle, dataurl) %}
                 <div class="card">
-                    <img src="client/{{ selected_client }}/scatter.png" class="card-img-top">
+                    <img src="client/{{ selected_client }}/{{ imagename }}" class="card-img-top">
                     <div class="card-body border-top">
-                        <p class="card-text text-muted">UDP Jitter by Date, Testing Period 3</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <img src="client/{{ selected_client }}/rate.png" class="card-img-top">
-                    <div class="card-body border-top">
-                        <p class="card-text text-muted">TCP Throughput and Transfer Totals by Date, Testing Period 3</p>
+                        <p class="card-text text-muted">{{ subtitle }}</p>
+                        <hr>
                         <p class="card-text"><em>Load this dataset as a pandas dataframe:</em></p>
 <pre><code># Get started by copy/pasting this code at https://colab.research.google.com/
 # This is a merged dataframe; _x values are for iPerf 2, _y values are for iPerf 3
 
 import pandas as pd
-df = pd.read_csv("https://corey.to/capstone/client/{{ selected_client }}/tcp.csv")
+df = pd.read_csv("https://corey.to/capstone/client/{{ selected_client }}/{{ dataurl }}")
 df.info()</code></pre>
                     </div>
                 </div>
-                <figure class="figure">
-                    <img src="client/{{ selected_client }}/scatter.png" class="figure-img img-fluid rounded">
-                    <figcaption class="figure-caption text-justify">UDP Jitter by Date, Testing Period 3</figcaption>
-                </figure>
-                <hr>
-                <img src="https://i.imgur.com/Sp0gc1F.png">
+                {% endmacro %}
+                {{ card('scatter.png', 'UDP Jitter by Date, Testing Period 3', 'udp.csv')}}
+                {{ card('scatter.png?dataset=udp3m', 'UDP Jitter by Date, 3mbit target, Testing Period 3', 'udp3m.csv')}}
+                {{ card('rate.png', 'TCP Throughput and Transfer Totals by Date, iPerf 2 vs iPerf 3 Testing Period 3', 'tcp.csv')}}
+                {{ card('rate.png?dataset=multiperf3', 'TCP Throughput and Transfer Totals by Date, iPerf 3 vs multiperf3, Testing Period 3', 'multiperf3.csv')}}
+                
             </main>
         </div>
     </div>

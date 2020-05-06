@@ -78,6 +78,23 @@ def get_client_data(client_name):
     #local_utils.scatter_by_date(udp_defaults, col='jitter_ms')
     local_utils.scatter_by_date(iperf3_udp_defaults, iperf2_udp_defaults, col='jitter_ms')
 
+def load_dataset_for_client(dataset, client_name, conn=get_database_connection(use_csv=True)):
+    if dataset == 'tcp':
+        iperf3 = pd.read_sql_query(queries.iperf3_tcp_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+        iperf2 = pd.read_sql_query(queries.iperf2_tcp, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+    elif dataset == 'udp':
+        iperf3 = pd.read_sql_query(queries.iperf3_udp_defaults_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+        iperf2 = pd.read_sql_query(queries.iperf2_udp_defaults_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+    elif dataset == 'udp3m':
+        iperf3 = pd.read_sql_query(queries.iperf3_udp_3m_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+        iperf2 = pd.read_sql_query(queries.iperf2_udp_3m_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+    elif dataset == 'multiperf3':
+        multiperf = pd.read_sql_query(queries.multiperf3_tcp_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+        iperf3 = pd.read_sql_query(queries.iperf3_tcp_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
+        return (iperf3, multiperf)
+    else:
+        return 'Error: invalid dataset'
+    return (iperf2, iperf3)
 app.url_map.strict_slashes = False
 
 @app.route("/")
@@ -101,11 +118,9 @@ from matplotlib.figure import Figure
 def scatter_png(client_name=None):
     if client_name is None:
         return 'Error'
-    conn = get_database_connection(use_csv=True)
-    iperf3_udp_defaults = pd.read_sql_query(queries.iperf3_udp_defaults_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
-    iperf2_udp_defaults = pd.read_sql_query(queries.iperf2_udp_defaults_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
-    fig = local_utils.scatter_by_date(iperf2_udp_defaults, iperf3_udp_defaults, col='jitter_ms', dotscale=2)
-    #fig.tight_layout()
+    dataset = request.args.get('dataset', default='udp')
+    fig = local_utils.scatter_by_date(*load_dataset_for_client(dataset, client_name), col='jitter_ms', dotscale=2)
+    fig.tight_layout()
     image = BytesIO()
     FigureCanvas(fig).print_png(image, metadata={'Author': 'Corey Hunter'})
     return Response(image.getvalue(), mimetype='image/png')
@@ -114,25 +129,20 @@ def scatter_png(client_name=None):
 def rate_png(client_name=None):
     if client_name is None:
         return 'Error'
-    conn = get_database_connection(use_csv=True)
-    iperf3_tcp_defaults = pd.read_sql_query(queries.iperf3_tcp_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
-    iperf2_tcp_defaults = pd.read_sql_query(queries.iperf2_tcp, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
-    #print(iperf2_tcp_defaults)
-    #print(iperf3_tcp_defaults)
-    fig = local_utils.ratebydate(iperf3_tcp_defaults, iperf2_tcp_defaults, 'TCP Throughput')
-    #fig.tight_layout()
+    dataset = request.args.get('dataset', default='tcp')
+    print(dataset, 'dataset')
+    fig = local_utils.ratebydate(*load_dataset_for_client(dataset, client_name), 'TCP Throughput', is_multiperf=(dataset == 'multiperf3'))
+    fig.tight_layout()
     image = BytesIO()
     FigureCanvas(fig).print_png(image)
     return Response(image.getvalue(), mimetype='image/png')
 
-@app.route("/client/<client_name>/tcp.csv")
-def tcp_data(client_name=None):
-    if client_name is None:
+@app.route("/client/<client_name>/<dataset>.csv")
+def tcp_data(client_name=None, dataset=None):
+    if client_name is None or dataset is None:
         return 'Error'
-    conn = get_database_connection(use_csv=True)
-    iperf3_tcp_defaults = pd.read_sql_query(queries.iperf3_tcp_query, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
-    iperf2_tcp_defaults = pd.read_sql_query(queries.iperf2_tcp, conn, index_col='unix_timestamp', parse_dates='unix_timestamp', params=[client_name])
-    merged = local_utils.merge(iperf2_tcp_defaults, iperf3_tcp_defaults)
+    merged = local_utils.merge(*load_dataset_for_client(dataset, client_name))
     return Response(merged.to_csv(compression='gzip'), mimetype='application/x-gzip')
+
 if __name__ == "__main__":
-    app.run(host='192.168.10.116', threaded=True, debug=True)
+    app.run(host='0.0.0.0', threaded=False, debug=True)

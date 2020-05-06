@@ -72,8 +72,8 @@ SELECT
     json_extract(
         output, '$.start.connected[0].remote_host'
     ) AS server,
-    json_extract(output, '$.end.sum_received.bytes') AS bytes,
-    json_extract(output, '$.end.sum_received.bits_per_second') AS bits_per_second,
+    json_extract(output, '$.end.sum_received.bytes') AS transfer_amount,
+    json_extract(output, '$.end.sum_received.bits_per_second') AS transfer_rate,
     json_extract(output, '$.end.sum_received.seconds') AS seconds
 FROM
     client_data
